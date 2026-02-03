@@ -89,6 +89,11 @@ typedef struct
     bool                isPrinting;
     float               currentZ;
     bool                waitingForAck;
+    // Movement statistics
+    unsigned long       msSinceLastMovement;
+    float               rollingAverageInterval;
+    unsigned long       highInterval;
+    unsigned long       lowInterval;
 } printer_info_t;
 
 class ElegooCC
@@ -103,6 +108,14 @@ class ElegooCC
     // Variables to track movement sensor state
     int           lastMovementValue;  // Initialize to invalid value
     unsigned long lastChangeTime;
+    
+    // Movement statistics tracking
+    static const int ROLLING_AVERAGE_SIZE = 20;  // Keep last 20 intervals
+    unsigned long movementIntervals[ROLLING_AVERAGE_SIZE];
+    int           intervalIndex;
+    int           intervalCount;  // How many intervals we've collected
+    unsigned long highInterval;
+    unsigned long lowInterval;
 
     // machine/status info
     String              mainboardID;

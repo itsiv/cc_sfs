@@ -39,6 +39,16 @@ ElegooCC::ElegooCC()
     pendingAckRequestId = "";
     ackWaitStartTime    = 0;
 
+    // Initialize movement statistics
+    intervalIndex = 0;
+    intervalCount = 0;
+    highInterval  = 0;
+    lowInterval   = 0;
+    for (int i = 0; i < ROLLING_AVERAGE_SIZE; i++)
+    {
+        movementIntervals[i] = 0;
+    }
+
     // TODO: send a UDP broadcast, M99999 on Port 30000, maybe using AsyncUDP.h and listen for the
     // result. this will give us the printer IP address.
 
@@ -355,10 +365,43 @@ void ElegooCC::checkFilamentMovement(unsigned long currentTime)
         {
             logger.log("Filament movement started");
         }
+        
+        // Calculate interval since last movement (if we have a previous time)
+        if (lastChangeTime > 0)
+        {
+            unsigned long interval = currentTime - lastChangeTime;
+            
+            // Store interval in rolling buffer
+            movementIntervals[intervalIndex] = interval;
+            intervalIndex = (intervalIndex + 1) % ROLLING_AVERAGE_SIZE;
+            if (intervalCount < ROLLING_AVERAGE_SIZE)
+            {
+                intervalCount++;
+            }
+            
+            // Update high and low values
+            if (intervalCount == 1)
+            {
+                highInterval = interval;
+                lowInterval  = interval;
+            }
+            else
+            {
+                if (interval > highInterval)
+                {
+                    highInterval = interval;
+                }
+                if (interval < lowInterval)
+                {
+                    lowInterval = interval;
+                }
+            }
+        }
+        
         // Value changed, reset timer and flag
-        lastMovementValue = currentMovementValue;
-        lastChangeTime    = currentTime;
-        filamentStopped   = false;
+        lastMovementValue  = currentMovementValue;
+        lastChangeTime     = currentTime;
+        filamentStopped    = false;
     }
     else
     {
@@ -457,6 +500,28 @@ printer_info_t ElegooCC::getCurrentInformation()
     info.isWebsocketConnected = webSocket.isConnected();
     info.currentZ             = currentZ;
     info.waitingForAck        = waitingForAck;
+
+    // Calculate movement statistics
+    unsigned long currentTime = millis();
+    info.msSinceLastMovement = (lastChangeTime > 0) ? (currentTime - lastChangeTime) : 0;
+    
+    // Calculate rolling average
+    if (intervalCount > 0)
+    {
+        unsigned long sum = 0;
+        for (int i = 0; i < intervalCount; i++)
+        {
+            sum += movementIntervals[i];
+        }
+        info.rollingAverageInterval = (float)sum / (float)intervalCount;
+    }
+    else
+    {
+        info.rollingAverageInterval = 0.0;
+    }
+    
+    info.highInterval = highInterval;
+    info.lowInterval  = lowInterval;
 
     return info;
 }

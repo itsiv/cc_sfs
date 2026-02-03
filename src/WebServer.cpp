@@ -58,7 +58,7 @@ void WebServer::begin()
                   // Add elegoo status information using singleton
                   printer_info_t elegooStatus = elegooCC.getCurrentInformation();
 
-                  DynamicJsonDocument jsonDoc(512);
+                  DynamicJsonDocument jsonDoc(1024);
                   jsonDoc["stopped"]        = elegooStatus.filamentStopped;
                   jsonDoc["filamentRunout"] = elegooStatus.filamentRunout;
 
@@ -73,6 +73,12 @@ void WebServer::begin()
                   jsonDoc["elegoo"]["PrintSpeedPct"]        = elegooStatus.PrintSpeedPct;
                   jsonDoc["elegoo"]["isWebsocketConnected"] = elegooStatus.isWebsocketConnected;
                   jsonDoc["elegoo"]["currentZ"]             = elegooStatus.currentZ;
+
+                  // Movement statistics
+                  jsonDoc["movement"]["msSinceLastMovement"] = elegooStatus.msSinceLastMovement;
+                  jsonDoc["movement"]["rollingAverageInterval"] = elegooStatus.rollingAverageInterval;
+                  jsonDoc["movement"]["highInterval"]       = elegooStatus.highInterval;
+                  jsonDoc["movement"]["lowInterval"]        = elegooStatus.lowInterval;
 
                   String jsonResponse;
                   serializeJson(jsonDoc, jsonResponse);

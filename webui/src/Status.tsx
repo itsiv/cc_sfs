@@ -40,6 +40,12 @@ function Status() {
       totalTicks: 0,
       PrintSpeedPct: 0,
       isWebsocketConnected: false,
+    },
+    movement: {
+      msSinceLastMovement: 0,
+      rollingAverageInterval: 0,
+      highInterval: 0,
+      lowInterval: 0,
     }
   })
 
@@ -123,6 +129,34 @@ function Status() {
                 <div>
                   <h3 class="font-bold">Print Speed</h3>
                   <p>{sensorStatus().elegoo.PrintSpeedPct}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card w-full mt-8 bg-base-200 card-sm shadow-sm">
+            <div class="card-body">
+              <h2 class="card-title">Filament Movement Statistics</h2>
+              <div class="stats w-full shadow bg-base-100">
+                <div class="stat">
+                  <div class="stat-title">MS Since Last Movement</div>
+                  <div class="stat-value text-lg">{sensorStatus().movement.msSinceLastMovement.toLocaleString()}</div>
+                  <div class="stat-desc">milliseconds</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-title">Rolling Average Interval</div>
+                  <div class="stat-value text-lg">{sensorStatus().movement.rollingAverageInterval > 0 ? sensorStatus().movement.rollingAverageInterval.toFixed(1) : 'N/A'}</div>
+                  <div class="stat-desc">milliseconds</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-title">High Interval</div>
+                  <div class="stat-value text-lg">{sensorStatus().movement.highInterval > 0 ? sensorStatus().movement.highInterval.toLocaleString() : 'N/A'}</div>
+                  <div class="stat-desc">milliseconds</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-title">Low Interval</div>
+                  <div class="stat-value text-lg">{sensorStatus().movement.lowInterval > 0 ? sensorStatus().movement.lowInterval.toLocaleString() : 'N/A'}</div>
+                  <div class="stat-desc">milliseconds</div>
                 </div>
               </div>
             </div>
